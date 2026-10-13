@@ -1,8 +1,14 @@
 import verification, {VerificationRegistry as ExistingRegistry} from './verification.mjs';
-import {manager, interactions, configurePrimary} from './manager.mjs';
+import {manager, interactions, configurePrimary, processAITickets} from './manager.mjs';
 export class VerificationRegistry extends ExistingRegistry {
+  constructor(state,env){super(state,env);this.env=env;}
+  async ensureAIAlarm(){if(!await this.state.storage.getAlarm())await this.state.storage.setAlarm(Date.now()+1000);}
+  async alarm(){await this.state.storage.setAlarm(Date.now()+15000);const active=await processAITickets(this.env,this);if(!active)await this.state.storage.deleteAlarm();}
+  async aiReserve(channel,message){return this.state.storage.transaction(async tx=>{const key='bot:ai-claim:'+channel+':'+message,previous=await tx.get(key);if(previous&&!(previous.status==='generation_failed'&&Date.now()-previous.created_at>15000))return false;const day=new Date().toISOString().slice(0,10),budget=await tx.get('bot:ai-budget')||{day,count:0};if(budget.day!==day){budget.day=day;budget.count=0;}if(budget.count>=100)return false;budget.count++;await tx.put('bot:ai-budget',budget);await tx.put(key,{status:'reserved',created_at:Date.now()});return true;});}
+  async aiStatus(){return {available:Boolean(this.env.AI),model:'@cf/meta/llama-3.2-3b-instruct',budget:await this.botGet('ai-budget')||null};}
   async botGet(key){return this.state.storage.get('bot:'+key);}
   async botPut(key,value){await this.state.storage.put('bot:'+key,value);}
+  async botPatch(key,changes){return this.state.storage.transaction(async tx=>{const old=await tx.get('bot:'+key);if(!old)return null;const row={...old,...changes};await tx.put('bot:'+key,row);return row;});}
   async botList(prefix,limit=200){return Array.from((await this.state.storage.list({prefix:'bot:'+prefix,limit})).values());}
   async botClaim(key,value){return this.state.storage.transaction(async tx=>{if(await tx.get('bot:'+key))return false;await tx.put('bot:'+key,value);return true;});}
   async voucherClaim(bot,code,user){return this.state.storage.transaction(async tx=>{const key='bot:voucher:'+bot+':'+code,v=await tx.get(key);if(!v||v.disabled||v.expires<=Date.now())throw Error('This voucher is unavailable or expired.');const claim='bot:claim:'+bot+':'+code+':'+user;if(await tx.get(claim))throw Error('You already claimed this voucher.');if(v.used>=v.limit)throw Error('This voucher has reached its claim limit.');v.used++;await tx.put(key,v);const row={bot,code,user,status:v.role?'pending':'claimed',created_at:Date.now(),reward:v.reward,role:v.role,guild:v.guild};await tx.put(claim,row);return row;});}
@@ -16,7 +22,7 @@ const nonce=()=>crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().repla
 const redirect=(url,cookies=[])=>{const h=new Headers({Location:url,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});for(const c of cookies)h.append('Set-Cookie',c);return new Response(null,{status:303,headers:h});};
 function assetHeaders(r){const h=new Headers(r.headers);h.set('Cache-Control','no-store');h.set('X-Content-Type-Options','nosniff');h.set('X-Frame-Options','DENY');h.set('Referrer-Policy','no-referrer');h.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'");return new Response(r.body,{status:r.status,headers:h});}
 export default {
-  scheduled:verification.scheduled,
+  async scheduled(event,env,ctx){if(event.cron==='17 3 * * *')verification.scheduled(event,env,ctx);ctx.waitUntil(env.REGISTRY.getByName('community').ensureAIAlarm());},
   async fetch(req,env,ctx){
     const u=new URL(req.url),r=env.REGISTRY.getByName('community');
     try{

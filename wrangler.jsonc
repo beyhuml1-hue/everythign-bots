@@ -1,6 +1,7 @@
 {
   "name": "verify-portal",
   "keep_vars": true,
+  "ai": {"binding":"AI"},
   "main": "worker.mjs",
   "compatibility_date": "2026-10-10",
   "account_id": "c7bafe49da51ae92601521edbd5bc2f7",
@@ -34,7 +35,8 @@
   },
   "triggers": {
     "crons": [
-      "17 3 * * *"
+      "17 3 * * *",
+      "* * * * *"
     ]
   }
 }

@@ -21,8 +21,18 @@ The deployment-only `/api/setup-primary` endpoint requires `BOT_DEPLOY_KEY`. Pro
 
 GitHub contains source code; the Cloudflare worker runs the dashboard and Discord HTTP interactions. Pushes alone do not deploy without a configured deployment workflow.
 
+## AI ticket support
+
+The Support tickets page has an AI switch, a server support guide, a preview that does not post to Discord, and per-ticket pause/resume controls. Workers AI runs `@cf/meta/llama-3.2-3b-instruct` using the server guide and up to ten messages from the same private ticket. No external model API key is needed. Ticket text is processed by Cloudflare Workers AI; no messages from other channels or verified-member records are included.
+
+Private tickets use the selected support role if configured. Server administrators retain access without a support role. `/ticket question:<your question>` starts a ticket and can supply the first question. Normal new ticket messages are checked about every 15 seconds by the existing Durable Object's alarm. A once-per-minute schedule recovers the monitor after a deployment. Existing historical tickets are initialized for future messages rather than receiving surprise replies to old messages.
+
+`/human` pauses AI. `/airesume` requires Manage Channels and resumes replies to new messages. Staff replies pause the assistant automatically. AI has no moderation or wallet tools, cannot confirm payments, and is instructed to send account-specific issues to staff. The shared daily inference allowance is 100 calls, with up to 20 replies per ticket per day. Duplicate messages are reserved atomically; ambiguous Discord delivery pauses the ticket for review instead of sending again.
+
+The bot must have Message Content access to read ordinary ticket messages. Setup enables the limited Message Content flag through Discord's application API for eligible applications. For applications requiring Discord approval, enable or obtain that approval in the Discord Developer Portal. The dashboard's Test AI reply can verify the hosting model without posting in a ticket.
+
 ## Commands
 
-`/help`, `/verify`, `/admincheck`, `/serverinfo`, `/userinfo`, `/ban`, `/unban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings`, `/clearwarnings`, `/purge`, `/lock`, `/unlock`, `/slowmode`, `/roleadd`, `/roleremove`, `/announce`, `/redeem`, `/ticket`, `/close`.
+`/help`, `/verify`, `/admincheck`, `/serverinfo`, `/userinfo`, `/ban`, `/unban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings`, `/clearwarnings`, `/purge`, `/lock`, `/unlock`, `/slowmode`, `/roleadd`, `/roleremove`, `/announce`, `/redeem`, `/ticket`, `/human`, `/airesume`, `/close`.
 
 Discord may show the bot offline because this integration uses HTTP interactions rather than a gateway connection. Its slash commands still run while the worker is available. Changing online presence requires a separately hosted gateway process.

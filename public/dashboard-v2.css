@@ -15,3 +15,5 @@ button,.button{border:1px solid #c0adff40;border-radius:9px;background:linear-gr
 @media(prefers-reduced-motion:reduce){*{transition:none!important}button:hover,.button:hover{transform:none}}
 .bot-grid:has(.bot-card:only-child){grid-template-columns:1fr}
 @media(min-width:761px){nav button,nav a{justify-content:flex-start}}
+
+.checkline{display:flex;align-items:flex-start;gap:12px;padding:17px;background:#a38adc09;border:1px solid #4b3f6633;border-radius:10px}.checkline input{width:17px;height:17px;margin:3px 0 0;accent-color:#b6a3ff;flex-shrink:0}.checkline span{font-size:12px}.checkline small{margin-top:4px}#aiTestResult{padding:16px;border-radius:9px;background:#111b28;border:1px solid #354253;line-height:1.8}#aiTestResult:empty{display:none}#ticketList a{font-size:12px;color:#c7b3ff;text-decoration:none}#ticketList a:hover{text-decoration:underline}
