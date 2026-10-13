@@ -11,7 +11,7 @@ const isHumanRequest=text=>/\b(?:human|real person|speak to staff|talk to staff|
 export async function processTickets(env,r,{botFor,tokenFor,api}){
  if(!env.AI)return false;
  const profiles=await r.botList('profile:');const candidates=[];
- for(const b of profiles){for(const t of await r.botList('ticket:'+b.id+':')){if(t.closed||t.ai_paused)continue;const settings=await r.botGet('settings:'+b.id+':'+t.guild)||{};if(settings.ai_enabled===false)continue;candidates.push({b,t,settings});}}
+ for(const b of profiles){for(const t of await r.botList('ticket:'+b.id+':')){if(t.closed||t.ai_paused||t.ai_enabled===false||t.kind==='buy')continue;const settings=await r.botGet('settings:'+b.id+':'+t.guild)||{};if(settings.ai_enabled===false)continue;candidates.push({b,t,settings});}}
  if(!candidates.length)return false;
  for(const {b,t,settings} of candidates.sort((a,b)=>(a.t.ai_checked_at||0)-(b.t.ai_checked_at||0)).slice(0,8)){
   const key='ticket:'+b.id+':'+t.channel;let claimKey;
