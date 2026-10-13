@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id);let overview,details,guildDetails,current='overview';
-const cmd=['help','verify','admincheck','serverinfo','userinfo','ban','unban','kick','timeout','untimeout','warn','warnings','clearwarnings','purge','lock','unlock','slowmode','roleadd','roleremove','announce','redeem','ticket','human','airesume','close'];
+const cmd=['help','verify','admincheck','serverinfo','userinfo','ban','unban','kick','timeout','untimeout','warn','warnings','clearwarnings','purge','lock','unlock','slowmode','roleadd','roleremove','announce','redeem','ticket','ticketpanel','human','airesume','close'];
 function notice(text,type=''){const n=$('notice');n.textContent=text;n.className=type;}
 async function api(path,body){const res=await fetch('/api/'+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const data=await res.json();if(!res.ok)throw Object.assign(Error(data.error||'Please try again.'),{status:res.status});return data;}
 function bot(){return $('botSelect').value||'primary';}function guild(){const id=$('guildSelect').value;if(!id)throw Error('Choose a Discord server first.');return id;}

@@ -33,6 +33,8 @@ The bot must have Message Content access to read ordinary ticket messages. Setup
 
 ## Commands
 
-`/help`, `/verify`, `/admincheck`, `/serverinfo`, `/userinfo`, `/ban`, `/unban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings`, `/clearwarnings`, `/purge`, `/lock`, `/unlock`, `/slowmode`, `/roleadd`, `/roleremove`, `/announce`, `/redeem`, `/ticket`, `/human`, `/airesume`, `/close`.
+`/help`, `/verify`, `/admincheck`, `/serverinfo`, `/userinfo`, `/ban`, `/unban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings`, `/clearwarnings`, `/purge`, `/lock`, `/unlock`, `/slowmode`, `/roleadd`, `/roleremove`, `/announce`, `/redeem`, `/ticket`, `/ticketpanel`, `/human`, `/airesume`, `/close`.
 
 Discord may show the bot offline because this integration uses HTTP interactions rather than a gateway connection. Its slash commands still run while the worker is available. Changing online presence requires a separately hosted gateway process.
+
+Use `/ticketpanel` in a channel to post a Request support button. Each click opens a private AI ticket, with the same one-open-ticket limit and staff handoff as `/ticket`. Posting requires Manage Channels.
