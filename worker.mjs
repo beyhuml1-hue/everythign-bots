@@ -1,5 +1,5 @@
 import verification, {VerificationRegistry as ExistingRegistry} from './verification.mjs';
-import {manager, interactions, configurePrimary, processAITickets} from './manager.mjs';
+import {manager, interactions, configurePrimary, processAITickets, checkServerJoins} from './manager.mjs';
 export class VerificationRegistry extends ExistingRegistry {
   constructor(state,env){super(state,env);this.env=env;}
   async ensureAIAlarm(){if(!await this.state.storage.getAlarm())await this.state.storage.setAlarm(Date.now()+1000);}
@@ -22,7 +22,7 @@ const nonce=()=>crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().repla
 const redirect=(url,cookies=[])=>{const h=new Headers({Location:url,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});for(const c of cookies)h.append('Set-Cookie',c);return new Response(null,{status:303,headers:h});};
 function assetHeaders(r){const h=new Headers(r.headers);h.set('Cache-Control','no-store');h.set('X-Content-Type-Options','nosniff');h.set('X-Frame-Options','DENY');h.set('Referrer-Policy','no-referrer');h.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'");return new Response(r.body,{status:r.status,headers:h});}
 export default {
-  async scheduled(event,env,ctx){if(event.cron==='17 3 * * *')verification.scheduled(event,env,ctx);ctx.waitUntil(env.REGISTRY.getByName('community').ensureAIAlarm());},
+  async scheduled(event,env,ctx){if(event.cron==='17 3 * * *')verification.scheduled(event,env,ctx);ctx.waitUntil(env.REGISTRY.getByName('community').ensureAIAlarm());ctx.waitUntil(checkServerJoins(env,env.REGISTRY.getByName('community')));},
   async fetch(req,env,ctx){
     const u=new URL(req.url),r=env.REGISTRY.getByName('community');
     try{
@@ -58,7 +58,7 @@ export default {
       if(u.pathname==='/api/setup-primary'&&req.method==='POST'){
         // Deployment-only setup uses an existing server secret and never runs from a public GET.
         if(!env.BOT_DEPLOY_KEY||req.headers.get('authorization')!=='Bearer '+env.BOT_DEPLOY_KEY)return json({error:'Setup authorization required.'},403);
-        return json(await configurePrimary(env,r));
+        const result=await configurePrimary(env,r);await checkServerJoins(env,r);return json(result);
       }
       if(u.pathname.startsWith('/api/'))return verification.fetch(req,{...env,PUBLIC_ORIGIN:BOT});
       const a=new URL(req.url);if(u.pathname==='/')a.pathname='/dashboard.html';

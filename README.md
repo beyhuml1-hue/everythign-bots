@@ -38,3 +38,5 @@ The bot must have Message Content access to read ordinary ticket messages. Setup
 Discord may show the bot offline because this integration uses HTTP interactions rather than a gateway connection. Its slash commands still run while the worker is available. Changing online presence requires a separately hosted gateway process.
 
 Use `/ticketpanel` in a channel to post a Request support button. Each click opens a private AI ticket, with the same one-open-ticket limit and staff handoff as `/ticket`. Posting requires Manage Channels.
+
+New-server monitoring runs every minute. Existing servers start as Minecraft · Donut SMP. New servers trigger an owner DM with a 24-hour invite when Create Invite permission permits, a server link, and a type dropdown. Only the configured owner can select the category. Member sections deduplicate people per type without modifying verification records.
